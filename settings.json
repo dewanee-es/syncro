@@ -1,0 +1,27 @@
+{
+	"name": "Name of the project",
+	"name": "Sample settings project",
+	"debug": "(boolean, defaults: false) Enable debug mode. The script prints every action it takes to stdout",
+	"debug": false,
+	"simulate": "(boolean, defaults: false) This option will cause the script not to take any action",
+	"simulate": false,
+	"hidden": "(boolean, defaults: true) If set to false it will cause the script to skip all hidden files and folders",
+	"hidden": true,
+	"checksum": "(boolean, defaults: false) Set this setting to true to make the script compare files using a checksum",
+	"checksum": false,
+	"preserve": "(boolean, defaults: true) If set to false removes deleted files",
+	"preserve": true,
+	"source": "(string/object) Source path to be synchronized",
+	"source": "/source",
+	"target": "(string/object) Target path be synchronized",
+	"target": {
+		"name": "Target",
+		"path": "/target"
+	},
+	"excludes": "(array, defaults empty array) Paths and filenames excluded from the synchronization",
+	"excludes": [],
+	"time": "(int, defaults: 0) Last sync time",
+	"time": 0,
+	"mode": "(string, defaults: sync) Synchronization mode. Possible values: mirror (copy changes from source to target), sync (copy changes in both directions)",
+	"mode": "sync"
+}

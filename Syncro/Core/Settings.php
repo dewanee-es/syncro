@@ -114,6 +114,36 @@ class Settings implements OptionsInterface {
 		return isset($this->settings->fat) ? $this->settings->fat : false;
 	}
 	
+	public function getFolders() {
+	    if(isset($this->settings->folders)) {
+	        $folders = $this->settings->folders;
+	        
+	        if(is_string($folders)) {
+	            $folders = (object) array(
+	               'select' => $folders,
+	               'with' => array()
+	            );
+	        }
+	        
+	        if(!isset($folders->select)) {
+	            $folders->select = 'any';
+	        } else {
+	            $folders->select = strtolower($folders->select);
+	        }
+	        
+	        if(!isset($folders->with)) {
+	            $folders->with = array();
+	        }
+	    } else {
+	        $folders = (object) array(
+	           'select' => 'top',
+	           'with' => array()
+	        );
+	    }
+	    
+	    return $folders;
+	}
+	
 	public function getHidden() {
 		return isset($this->settings->hidden) ? $this->settings->hidden : true;
 	}
@@ -184,6 +214,10 @@ class Settings implements OptionsInterface {
 	
 	public function setFat($fat) {
 		$this->settings->fat = $fat;
+	}
+	
+	public function setFolders($folders) {
+	    $this->settings->folders = $folders;
 	}
 	
 	public function setHidden($hidden) {

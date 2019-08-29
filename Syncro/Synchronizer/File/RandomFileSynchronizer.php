@@ -28,7 +28,7 @@ class RandomFileSynchronizer extends FileSynchronizer {
 	
 	public function setSource(SynchronizerSourceInterface $source) {
 		if($this->items == 'FOLDERS') {
-			$randomSource = RandomFolderSynchronizerPath::fromPath($source);
+			$randomSource = RandomFolderSynchronizerPath::fromPathAndConfig($source, $this->settings->getFolders());			
 		} else {
 			$randomSource = RandomFileSynchronizerPath::fromPath($source);
 		}
@@ -55,7 +55,7 @@ class RandomFileSynchronizer extends FileSynchronizer {
 		$maxsize = 0;
 		$items = 'FILES';
 		
-		if(!preg_match('/^([0-9]+) *([KMGT]?B)?( FILES| FOLDERS)?$/', strtoupper($sizeOption), $matches)) {
+		if(!preg_match('/^([0-9]+) *([KMGT]?B)?(?: (FILE|FOLDER)S?)?$/', strtoupper($sizeOption), $matches)) {
 			throw new SettingsException('Size is not valid: ' + $sizeOption + '. Size can be the number of files or the max size (with B, KB, MB, GB, TB suffix)');
 		}
 		
@@ -81,7 +81,7 @@ class RandomFileSynchronizer extends FileSynchronizer {
 		}
 		
 		if(!empty($matches[3])) {
-			$items = trim($matches[3]);
+			$items = $matches[3] . 'S';
 		}
 		
 		if($count == 0 && $maxsize == 0) {

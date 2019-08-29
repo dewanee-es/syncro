@@ -12,7 +12,12 @@ class AbstractRandomSynchronizerPath extends FileSynchronizerPath {
 		));
 		$instance->relative = $path->relative;
 		$instance->clazz = get_class($path);
+		$instance->filename = $path->getRelativeFilename();
 		return $instance;
+	}
+	
+	public function getRelativeFilename() {
+		return $this->filename;
 	}
 	
 	public function nextFile() {
@@ -33,6 +38,7 @@ class AbstractRandomSynchronizerPath extends FileSynchronizerPath {
 			$clazz = $this->clazz;
 			$newPath = new $clazz((object) ['name' => $this->name, 'path' => $this->files[$path]]);
 			$newPath->relative = ltrim($this->relative . '/' . $path, '/');
+			$newPath->filename = substr($newPath->path, strlen($this->path) + 1);
 			return $newPath;
 		}
 	}

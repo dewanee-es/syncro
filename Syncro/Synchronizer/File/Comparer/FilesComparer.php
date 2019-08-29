@@ -52,7 +52,7 @@ abstract class FilesComparer {
 		}
 			
 		// If the file matchs an excluded name we don't add the file
-		if($this->fnmatcher->match($file->getRelativePath()))
+		if($this->fnmatcher->match($file->getRelativeFilename()))
 			return false;
 
 		if(!isset($this->files[$filename])) {

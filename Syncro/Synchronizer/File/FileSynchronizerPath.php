@@ -10,6 +10,7 @@ class FileSynchronizerPath implements SynchronizerSourceInterface, SynchronizerT
 	protected $name;
 	protected $path;
 	protected $relative;
+	protected $filename;
 	protected $status;
 	protected $modifyTime = -1;
 	protected $dir;
@@ -54,8 +55,8 @@ class FileSynchronizerPath implements SynchronizerSourceInterface, SynchronizerT
 		if($this->getRelativePath() != $target->getRelativePath()) {
 			return false;
 		}
-	
-		$result = @copy($this->getPath(), $target->getPath());
+
+		$result = copy($this->getPath(), $target->getPath());
 		$modifyTime = $this->modifyTime();
 		
 		if($result && $modifyTime > 0) {
@@ -79,6 +80,10 @@ class FileSynchronizerPath implements SynchronizerSourceInterface, SynchronizerT
 	
 	public function getPath() {
 		return $this->path;
+	}
+
+	public function getRelativeFilename() {
+		return $this->filename;
 	}
 	
 	public function getRelativeName() {
@@ -154,6 +159,7 @@ class FileSynchronizerPath implements SynchronizerSourceInterface, SynchronizerT
 	public function newPath($path) {
 		$newPath = new static((object) ['name' => $this->name, 'path' => $this->path . '/' . $path]);
 		$newPath->relative = ltrim($this->relative . '/' . $path, '/');
+		$newPath->filename = ltrim($this->filename . '/' . $path, '/');
 		return $newPath;
 	}
 	
@@ -180,7 +186,11 @@ class FileSynchronizerPath implements SynchronizerSourceInterface, SynchronizerT
 	}
 	
 	public function size() {
-		return filesize($this->path);
+		if($this->isDir()) {
+			return self::dirSize($this->path);
+		} else {
+			return filesize($this->path);
+		}
 	}
 	
 	public function setStatus($status) {
@@ -195,6 +205,36 @@ class FileSynchronizerPath implements SynchronizerSourceInterface, SynchronizerT
 		}
 		
 		return $this->false;
+	}
+	
+	protected static function dirSize($path) {
+		/*
+		$size = 0;
+		
+    	foreach (glob(rtrim($path, '/').'/*', GLOB_NOSORT) as $each) {
+	        $size += is_file($each) ? filesize($each) : self::dirSize($each);
+    	}
+    	
+	    return $size;
+	    */
+
+		$total_size = 0;
+		$files = scandir($path);
+
+  		foreach($files as $t) {
+  		    if (is_dir(rtrim($path, '/') . '/' . $t)) {
+  		    	if ($t <> "." && $t <> "..") {
+					$size = self::dirSize(rtrim($path, '/') . '/' . $t);
+
+					$total_size += $size;
+				}
+			} else {
+				$size = filesize(rtrim($path, '/') . '/' . $t);
+				$total_size += $size;
+			}
+		}
+		
+		return $total_size;
 	}
 	
 }

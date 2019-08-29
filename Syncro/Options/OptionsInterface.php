@@ -17,6 +17,8 @@ interface OptionsInterface {
 	
 	public function getFat();
 	
+	public function getFolders();
+	
 	public function getHidden();
 	
 	public function getMode();
@@ -46,6 +48,8 @@ interface OptionsInterface {
 	public function setExcludes($excludes);
 	
 	public function setFat($fat);
+	
+	public function setFolders($folders);
 	
 	public function setHidden($hidden);
 	

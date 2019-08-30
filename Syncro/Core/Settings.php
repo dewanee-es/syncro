@@ -16,26 +16,29 @@ class Settings implements OptionsInterface {
 		if(is_null($settings)) {
 			$this->settings = (object) array();
 			return;
+		} else if(is_array($settings)) {
+		  $this->settings = $settings;
+		  return;
 		}
 	
 		$this->settings = json_decode($settings);
 		
 		if(empty($this->settings)) {
 			switch(json_last_error()) {
-	        case JSON_ERROR_NONE:
-	            $error = 'No errors?';
+	      case JSON_ERROR_NONE:
+          $error = 'No errors?';
 			    break;
 		    case JSON_ERROR_DEPTH:
-		        $error = 'Maximum stack depth exceeded';
+          $error = 'Maximum stack depth exceeded';
 			    break;
 		    case JSON_ERROR_STATE_MISMATCH:
-		        $error = 'Underflow or the modes mismatch';
+          $error = 'Underflow or the modes mismatch';
 			    break;
 		    case JSON_ERROR_CTRL_CHAR:
-		        $error = 'Unexpected control character found';
+          $error = 'Unexpected control character found';
 			    break;
 		    case JSON_ERROR_SYNTAX:
-		        $error = 'Syntax error, malformed JSON';
+          $error = 'Syntax error, malformed JSON';
 			    break;
 		    case JSON_ERROR_UTF8:
 		    	$error = 'Malformed UTF-8 characters, possibly incorrectly encoded';
@@ -50,7 +53,7 @@ class Settings implements OptionsInterface {
 		    	$error = 'A value of a type that cannot be encoded was given';
 			    break;
 		    default:
-		        $error = 'Unknown error';
+          $error = 'Unknown error';
 			    break;
 			}
 			throw new SettingsException("Settings are empty or invalid JSON file ($error)");

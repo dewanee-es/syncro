@@ -12,6 +12,7 @@ class FileSynchronizerPath implements SynchronizerSourceInterface, SynchronizerT
 	protected $relative;
 	protected $filename;
 	protected $status;
+	protected $operation;  // Operation to perform on copy
 	protected $modifyTime = -1;
 	protected $dir;
 	protected $exists;
@@ -22,6 +23,7 @@ class FileSynchronizerPath implements SynchronizerSourceInterface, SynchronizerT
 		if(is_object($settings)) {
 			$this->name = isset($settings->name) ? $settings->name : null;
 			$this->path = isset($settings->path) ? $settings->path : null;
+			$this->operation = isset($settings->operation) ? $settings->operation : 'copy';
 		} else {
 			$this->path = (string) $settings;
 		}
@@ -55,8 +57,34 @@ class FileSynchronizerPath implements SynchronizerSourceInterface, SynchronizerT
 		if($this->getRelativePath() != $target->getRelativePath()) {
 			return false;
 		}
+		
+		$from = $this->getPath();
+		$to = $target->getPath();
 
-		$result = copy($this->getPath(), $target->getPath());
+    switch($this->operation) {
+    case 'cp':
+      $from = str_replace('"', '\\"', $from);
+      $to = str_replace('"', '\\"', $to);
+      exec("cp \"$from\" \"$to\"", $output, $error);
+      $result = !$error;
+      break;
+    case 'mv':
+      $from = str_replace('"', '\\"', $from);
+      $to = str_replace('"', '\\"', $to);
+      exec("mv \"$from\" \"$to\"", $output, $error);
+      $result = !$error;
+      break;
+    case 'link':
+      $result = symlink($source, $target);
+      break;
+    case 'move':
+      $result = rename($from, $to);
+      break;
+    case 'copy':
+    default:
+		  $result = copy($from, $to);
+		}
+		
 		$modifyTime = $this->modifyTime();
 		
 		if($result && $modifyTime > 0) {

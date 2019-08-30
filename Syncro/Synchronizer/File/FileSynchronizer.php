@@ -6,6 +6,7 @@ use Syncro\Exception\DirectoryRemoveException;
 use Syncro\Exception\FileCopyException;
 use Syncro\Exception\FileDeleteException;
 use Syncro\Exception\InvalidPathException;
+use Syncro\Interaction\SynchronizerInteractionAdapter;
 use Syncro\Output\SynchronizerOutputAdapter;
 use Syncro\Synchronizer\AbstractSynchronizer;
 use Syncro\Synchronizer\SynchronizerSourceInterface;
@@ -41,7 +42,7 @@ abstract class FileSynchronizer extends AbstractSynchronizer {
 		parent::__construct($settings);
 		
 		$this->output = new SynchronizerOutputAdapter($settings->getOutput(), self::DATE, $settings->getPreserve());
-		$this->interaction = $settings->getInteraction();
+		$this->interaction = new SynchronizerInteractionAdapter($settings->getInteraction());
 	}
 	
 	/** Returns the iterator for the files comparer used by this synchronizar
@@ -145,50 +146,62 @@ abstract class FileSynchronizer extends AbstractSynchronizer {
 		// Use checksums and include hidden files if specified
 		$filescomparer = $this->getFilesComparerIterator($source, $target);
 		
+		// First delete obsolete files to free space
 		foreach($filescomparer as $comparison) {
-		
-			if($comparison->isDir()) {
-				$this->summary->incrementDirs();
-			} else {
-				$this->summary->incrementFiles();
+		  if($comparison->getStatus() == FilesComparison::OBSOLETE) {
+		    $this->syncComparison($comparison);
 			}
-			
-			$status = $comparison->getStatus();
-			
-			switch($status) {
-			case FilesComparison::DIR:		// Synchronize subdirectory
-				$this->summary->incrementUnchanged();
-				$this->doDir($comparison);
-				break;
-			case FilesComparison::UPDATED:	// Files updated
-				$this->summary->incrementUnchanged();
-				$this->doUpdated($comparison);
-				break;
-			case FilesComparison::OUTDATED:	// Source or target outdated
-				$this->summary->incrementOutdated();
-				$this->updateOutdated($comparison);
-				break;
-			case FilesComparison::MISSING:
-				$this->summary->incrementMissing();
-				$this->addMissing($comparison);
-				break;
-			case FilesComparison::OBSOLETE:
-				$this->summary->incrementObsolete();
-				$this->removeObsolete($comparison);
-				break;
-			case FilesComparison::CONFLICT:
-				$this->summary->incrementConflicts();
-				$this->doConflict($comparison);
-				break;
-			case FilesComparison::UNKNOWN:
-			default:
-				$this->summary->incrementUnknown();
-				$this->doUnknown($comparison);
-				break;
-			}
-			
 		}
 		
+		// Execute actions for the other files
+    foreach($filescomparer as $comparison) {
+      if($comparison->getStatus() != FilesComparison::OBSOLETE) {
+        $this->syncComparison($comparison);
+      }
+    }
+		
+	}
+	
+	protected function syncComparison($comparison) {
+    if($comparison->isDir()) {
+      $this->summary->incrementDirs();
+    } else {
+      $this->summary->incrementFiles();
+    }
+    
+    $status = $comparison->getStatus();
+    
+    switch($status) {
+    case FilesComparison::DIR:    // Synchronize subdirectory
+      $this->summary->incrementUnchanged();
+      $this->doDir($comparison);
+      break;
+    case FilesComparison::UPDATED:  // Files updated
+      $this->summary->incrementUnchanged();
+      $this->doUpdated($comparison);
+      break;
+    case FilesComparison::OUTDATED: // Source or target outdated
+      $this->summary->incrementOutdated();
+      $this->updateOutdated($comparison);
+      break;
+    case FilesComparison::MISSING:
+      $this->summary->incrementMissing();
+      $this->addMissing($comparison);
+      break;
+    case FilesComparison::OBSOLETE:
+      $this->summary->incrementObsolete();
+      $this->removeObsolete($comparison);
+      break;
+    case FilesComparison::CONFLICT:
+      $this->summary->incrementConflicts();
+      $this->doConflict($comparison);
+      break;
+    case FilesComparison::UNKNOWN:
+    default:
+      $this->summary->incrementUnknown();
+      $this->doUnknown($comparison);
+      break;
+    }
 	}
 
 	protected function updateOutdated($comparison) {
@@ -322,7 +335,7 @@ abstract class FileSynchronizer extends AbstractSynchronizer {
 			$this->removeObsolete($comparison);
 			break;
 		case self::ACTION_COPY:
-			$comparison->resolveCopy();		// Resolver comparison conflict
+			$comparison->resolveCopy();		// Resolve comparison conflict
 			$this->addMissing($comparison);
 			break;
 		case self::ACTION_SKIP:

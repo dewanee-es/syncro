@@ -87,7 +87,7 @@ To run a synchronization project use the project filename without extension:
                  Synchronization mode. Possible values are:
                  * <info>mirror</info>: Apply changes from source to target
                  * <info>sync</info>:   Apply changes in both directions
-				 * <info>random</info>: Copy random files from source to target
+                 * <info>random</info>: Copy random files from source to target
      <info>"source":   string/object,</info> (required)
                  Source path to be synchronized:
                  * <info>string</info>: The source path
@@ -170,20 +170,20 @@ EOF
 	
     protected function execute(InputInterface $input, OutputInterface $output) {
         $project = $input->getArgument('project');
-		$helper = $this->getHelper('question');
+        $helper = $this->getHelper('question');
         $console = new ConsoleOutputAdapter($output);
-		$interaction = new InputInteraction($helper, $input, $output);
-		$settings = new Settings;
-		$simulate = $input->getOption('simulate');
-		$auto = $input->getOption('auto');
+        $interaction = new InputInteraction($helper, $input, $output);
+        $settings = new Settings;
+        $simulate = $input->getOption('simulate');
+        $auto = $input->getOption('auto');
 		
-		if($simulate) {
-			$settings->setSimulate(true);
-		}
+        if($simulate) {
+          $settings->setSimulate(true);
+        }
 		
-		if($auto) {
-			$interaction->setAuto(true);
-		}
+        if($auto) {
+          $interaction->setAuto(true);
+        }
         
         return Syncro::run($project, $settings, $interaction, $console);
     }
